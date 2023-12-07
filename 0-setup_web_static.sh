@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # Bash script that sets up web servers for web_static deployment
+#!/usr/bin/env bash
+# Bash script that sets up web servers for web_static deployment
 if [ -z "$(command -v nginx)" ]; then
-	sudo apt-get update
-	sudo apt-get -y install nginx
+        sudo apt-get update
+        sudo apt-get -y install nginx
 fi
 
-sudo mkdir -p "/data"
-sudo mkdir -p "/data/web_static"
-sudo mkdir -p "/data/web_static/releases"
-sudo mkdir -p "/data/web_static/shared"
-sudo mkdir -p "/data/web_static/releases/test"
+mkdir -p /data
+mkdir -p /data/web_static
+mkdir -p /data/web_static/releases
+mkdir -p /data/web_static/shared
+mkdir -p /data/web_static/releases/test
 
 echo "<html>
   <head>
@@ -21,24 +23,31 @@ echo "<html>
 
 current_link="/data/web_static/current"
 if [ -L "$current_link" ]; then
-	sudo -rm "$current_link"
+        sudo rm "$current_link"
 fi
 
 sudo ln -s "/data/web_static/releases/test" "$current_link"
 
-sudo chown -R ubuntu:ubuntu /data
+chown -R ubuntu:ubuntu /data
+chmod -R 755 /data
 
-echo "server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
-	
-	server_name _;
+echo 'server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
 
-	location /hbnb_static {
-		alias /data/web_static/current/;
-		index index.html;
-	}
-}" > /etc/nginx/sites-available/default
+        server_name _;
+
+        location / {
+                add_header X-Served-By \$hostname;
+                alias /data/web_static/current/;
+                index index.html;
+        }
+
+        location /hbnb_static {
+                alias /data/web_static/current/;
+                index index.html;
+        }
+}' | sudo tee /etc/nginx/sites-available/default > /dev/null
 
 if [ "$(pgrep -c nginx)" -le 0 ]; then
         sudo service nginx start
