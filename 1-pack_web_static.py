@@ -9,17 +9,21 @@ def do_pack():
     """ define the do_pack function """
 
     source = "web_static"
-    destination = "versions"
+    local("mkdir -p versions")
 
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    archive_filename = "web_static_{}.tgz".format(timestamp)
+    time_now = datetime.utcnow()
+    archive_filename = "web_static_{}{}{}{}{}{}.tgz".format(
+                                                            time_now.year,
+                                                            time_now.month,
+                                                            time_now.day,
+                                                            time_now.hour,
+                                                            time_now.minute,
+                                                            time_now.second
+                                                            )
 
-    local("mkdir -p {}".format(destination))
-    local("tar -czvf {}/{} -C {}".format(destination, archive_filename,
-                                         source))
-    archive_path = "{}/{}".format(destination, archive_filename)
+    result = local("tar -cvzf versions/{} web_static".format(archive_filename))
 
-    if os.path.exists(archive_path):
-        return archive_path
-    else:
+    if result.failed:
         return None
+    else:
+        return os.path.join("versions", archive_filename)

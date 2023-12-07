@@ -20,13 +20,7 @@ else:
 
 def deploy():
     """ define the function deploy """
-
-    try:
-        archive_path = do_pack()
-        if not archive_path:
-            return False
-        result = do_deploy(archive_path)
-
-        return result
-    except Exception as e:
+    archive_path = do_pack()
+    if not archive_path:
         return False
+    return do_deploy(archive_path)

@@ -19,22 +19,24 @@ else:
 def do_deploy(archive_path):
     """ defines the function do_deploy """
 
+    if not os.path.exists(archive_path):
+        return False
+
     try:
-        if not os.path.exists(archive_path):
-            return False
+        put(archive_path, '/tmp/')
 
-        remote_arch_path = "/tmp/{}".format(os.path.basename(archive_path))
-        put(archive_path, remote_arch_path, use_sudo=True)
+        release = archive_path.split('/')[-1]
+        rel_path = '/data/web_static/releases/{}'.format(release.split('.')[0])
 
-        release = os.path.splitext(os.path.basename(archive_path))[0]
-        rel_path = "/data/web_static/releases/{}".format(release)
         run("mkdir -p {}".format(rel_path))
-        run("tar -xzf {} -C {}".format(remote_arch_path, rel_path))
+        run('tar -xzf /tmp/{} -C {}'.format(release, rel_path))
 
-        run("rm -f {}".format(remote_arch_path))
+        run('rm /tmp/{}'.format(release))
+        run('mv {}/web_static/* {}'.format(rel_path, rel_path))
+        run('rm -rf {}/web_static'.format(rel_path))
 
         link_path = '/data/web_static/current'
-        run("rm -f {}".format(link_path))
+        run("rm -rf {}".format(link_path))
 
         run("ln -s {} {}".format(rel_path, link_path))
 
