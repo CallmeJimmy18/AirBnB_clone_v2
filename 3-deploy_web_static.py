@@ -3,24 +3,57 @@
 from fabric.api import local, run, put, env
 from datetime import datetime
 import os
-import sys
-do_pack = __import__('1-pack_web_static').do_pack
-do_deploy = __import__('2-do_deploy_web_static').do_deploy
 
 env.hosts = ['100.26.221.219', '100.25.20.74']
-if len(sys.argv) > 4:
-    env.key_filename = sys.argv[4]
-else:
-    env.key_filename = None
-if len(sys.argv) > 6:
-    env.user = sys.argv[6]
-else:
-    env.user = None
 
+
+def do_pack():
+    """ define the do_pack function """
+
+    source = "web_static"
+    local("mkdir -p versions")
+
+    time_now = datetime.now().strftime("%Y%m%d%H%M%S")
+    archive_filename = "versions/eb_static_{}.tgz".format(time_now)
+
+    result = local("sudo tar -cvzf {} web_static".format(archive_filename))
+
+    if result.failed:
+        return None
+    else:
+        return archive_filename
+
+def do_deploy(archive_path):
+    """ defines the function do_deploy """
+
+    if os.path.exists(archive_path) is False:
+        return False
+    release = archive_path.split('/')[-1]
+    rel_path = '/data/web_static/releases/' + "{}".format(release.split('.')[0])
+
+    try:
+        put(archive_path, "/tmp/")
+
+
+        run("mkdir -p {}/".format(rel_path))
+        run("tar -xzf /tmp/{} -C {}/".format(release, rel_path))
+
+        run("rm /tmp/{}".format(release))
+        run("mv {}/web_static/* {}/".format(rel_path, rel_path))
+        run("rm -rf {}/web_static".format(rel_path))
+
+        run("rm -rf /data/web_static/current")
+
+        run("ln -s {}/ /data/web_static/current".format(rel_path))
+
+        return True
+    except:
+        return False
 
 def deploy():
     """ define the function deploy """
     archive_path = do_pack()
-    if not archive_path:
+    if os.path.exists(archive_path) is False:
         return False
-    return do_deploy(archive_path)
+    result = do_deploy(archive_path)
+    return result
