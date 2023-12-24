@@ -2,8 +2,6 @@
 """ This is a script that starts a Flask web application """
 from flask import Flask, render_template
 from models import storage
-from models.state import State
-from models.city import City
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -12,14 +10,14 @@ app.url_map.strict_slashes = False
 @app.route('/states', strict_slashes=False)
 def states():
     """Displays a list of states."""
-    states = storage.all(State).values()
-    return render_template('9-states.html', states=states)
+    states = storage.all("State")
+    return render_template('9-states.html', state=states)
 
 
 @app.route("/states/<id>", strict_slashes=False)
 def state_details(id):
     """Displays details of a specific state."""
-    for state in storage.all(State).values():
+    for state in storage.all("State").values():
         if state.id == id:
             return render_template("9-states.html", state=state)
     return render_template("9-states.html")
@@ -32,4 +30,4 @@ def teardown(exc):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host="0.0.0.0")
