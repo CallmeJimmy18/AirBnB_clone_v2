@@ -31,7 +31,7 @@ def python_is_cool(text='is cool'):
     return 'Python {}'.format(text.replace('_', ' '))
 
 
-@app.route("/number/<n>")
+@app.route("/number/<int:n>")
 def number_n(n):
     """ defines the function number_n """
     return "{:d} is a number".format(n)
