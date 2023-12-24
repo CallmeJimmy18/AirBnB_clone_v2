@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ This is a script that starts a Flask web application """
-from flask import Flask
+from flask import Flask, render_template
 from models import storage
 from models.state import State
 
@@ -9,7 +9,7 @@ app.url_map.strict_slashes = False
 
 
 @app.teardown_appcontext
-def teardown(exception):
+def teardown(exc):
     """ calls the storage close method """
     storage.close()
 
