@@ -9,16 +9,10 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 
-@app.teardown_appcontext
-def teardown(exception):
-    """ calls the storage close method """
-    storage.close()
-
-
 @app.route('/states', strict_slashes=False)
 def states():
     """Displays a list of states."""
-    states = storage.all(State)
+    states = storage.all(State).values()
     return render_template('9-states.html', states=states)
 
 
@@ -29,6 +23,12 @@ def state_details(id):
         if state.id == id:
             return render_template("9-states.html", state=state)
     return render_template("9-states.html")
+
+
+@app.teardown_appcontext
+def teardown(exc):
+    """Remove the current SQLAlchemy session."""
+    storage.close()
 
 
 if __name__ == "__main__":
